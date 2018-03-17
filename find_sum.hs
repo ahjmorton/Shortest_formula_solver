@@ -26,8 +26,8 @@ evaluate (Result start ops) = foldl performOp start ops
 addOp :: Integral a => Formula a -> (Op, a) -> Formula a
 addOp (Result start ops) op = (Result start (ops ++ [op]))
 
-createNextOps :: Integral a => [a] -> a -> Formula a -> [Formula a]
-createNextOps universe destination form =
+createNextFormulae :: Integral a => [a] -> a -> Formula a -> [Formula a]
+createNextFormulae universe destination form =
     map (addOp form) newOps
     where 
     distance value = abs $ destination - value
@@ -35,22 +35,18 @@ createNextOps universe destination form =
     currentDistance = distance currentResult
     newOps = [(op, item) | op <- [Sub, Add, Mult, Div], item <- universe, distance(performOp currentResult (op, item)) < currentDistance]
 
-createNextGeneration :: Integral a => [Formula a] -> [a] -> a -> [Formula a]
-createNextGeneration resultSet universe destination = 
-    concatMap (createNextOps universe destination) resultSet
-       
+createFormulae :: Integral a => [Formula a] -> [a] -> a -> [Formula a]
+createFormulae resultSet universe destination = 
+    possibleSolutions ++ createFormulae possibleSolutions universe destination
+    where 
+    possibleSolutions = concatMap (createNextFormulae universe destination) resultSet
 
-hasShortest :: Integral a =>  [Formula a] -> a -> Maybe (Formula a)
-hasShortest [] _ = Nothing
-hasShortest (x:xs) destination 
-     | evaluate x == destination = Just x
-     | otherwise = hasShortest xs destination
+isShortest :: Integral a =>  a -> Formula a -> Bool
+isShortest destination formula = evaluate formula == destination
 
 doFindShortest :: Integral a => [Formula a] -> a -> [a] -> Formula a
 doFindShortest resultSet destination universe = 
-    case (hasShortest resultSet destination) of
-        (Just result) -> result
-        _ -> doFindShortest (createNextGeneration resultSet universe destination) destination universe
+    head $ filter (isShortest destination) (createFormulae resultSet universe destination)
     
 findShortest :: Integral a => a -> a -> [a] -> Formula a
 findShortest start destination universe = doFindShortest [(Result start [])] destination universe

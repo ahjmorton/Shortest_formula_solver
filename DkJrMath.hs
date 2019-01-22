@@ -2,14 +2,14 @@ module DkJrMath (solutions) where
 
 import Model
 
-ops :: Integral a => [Op a] 
-ops = [(Op "-" (-)), (Op "+" (+)), (Op "/" (div)), (Op "x" (*))]
+ops :: Integral a => [a -> Operation a]
+ops = [mult, add, divi, sub]
 
 universe :: Integral a => [a]
 universe = [1..10]
 
 availableOps :: Integral a => [Operation a] 
-availableOps = [(op, item) | op <- ops, item <- universe]
+availableOps = [op item | op <- ops, item <- universe]
 
 createNextSolutions :: Integral a => a -> Formula a -> [Formula a]
 createNextSolutions destination form =
